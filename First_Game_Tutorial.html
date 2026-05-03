@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maki Game Tutorial</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 17px;
+      line-height: 1.7;
+      color: #000;
+      background: #fff;
+      max-width: 780px;
+      margin: 60px auto;
+      padding: 0 24px 80px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-top: 48px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #000;
+      padding-bottom: 4px;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 28px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-bottom: 14px;
+    }
+
+    ul, ol {
+      margin: 10px 0 14px 24px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    code {
+      font-family: "Courier New", monospace;
+      font-size: 0.9em;
+      background: #f0f0f0;
+      padding: 1px 4px;
+    }
+
+    pre {
+      font-family: "Courier New", monospace;
+      font-size: 0.88em;
+      background: #f0f0f0;
+      border-left: 3px solid #000;
+      padding: 14px 16px;
+      margin: 14px 0;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    blockquote {
+      border-left: 3px solid #000;
+      padding-left: 16px;
+      margin: 14px 0;
+      font-style: italic;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 40px 0;
+    }
+
+    img {
+      display: block;
+      max-width: 100%;
+      margin: 16px 0;
+      border: 1px solid #ccc;
+    }
+
+    .intro {
+      margin-bottom: 32px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Maki Game Tutorial</h1>
+  <p class="intro">Build your first Maki game, understand the generated project structure, run the game locally, create a custom tilemap, and switch between scenes.</p>
+
+  <h2>What you will build</h2>
+  <p>By the end of this tutorial, you will have:</p>
+  <ul>
+    <li>A new Maki game project.</li>
+    <li>A playable character named <code>lia</code>.</li>
+    <li>A map with collision enabled.</li>
+    <li>A custom tilemap created with <code>maki tilemap</code>.</li>
+    <li>Two scenes that you can switch between with keyboard shortcuts.</li>
+  </ul>
+
+  <hr />
+
+  <h2>1. Install Maki</h2>
+  <p>Install the Maki package with npm:</p>
+  <pre><code>npm install @tialops/maki</code></pre>
+
+  <hr />
+
+  <h2>2. Create your first game</h2>
+  <p>Create a new game project from the CLI. (here game is the name i choose, you can choose anything):</p>
+  <pre><code>maki new game</code></pre>
+  <p>This creates a <code>game</code> folder with a structure like this:</p>
+  <img src="img/page1_img2.png" alt="Generated game folder structure" />
+
+  <h3>Project structure</h3>
+  <p>Inside the generated folder, you will find:</p>
+  <ul>
+    <li><code>img/</code> - template img for the game.</li>
+    <li><code>scenes/</code> - scene files for your game.</li>
+    <li><code>game.js</code> - the main game entry file.</li>
+    <li><code>index.html</code> - the HTML page used by the game.</li>
+    <li><code>maki.config.js</code> - Maki configuration.</li>
+    <li><code>README.md</code> - the generated README file.</li>
+    <li><code>vite.config.js</code> - Vite configuration for local development.</li>
+  </ul>
+
+  <hr />
+
+  <h2>3. Understand the default game scene</h2>
+  <p>Open the default scene file. It should look similar to this:</p>
+  <pre><code>import { Scene, manager } from '@tialops/maki'
+import NewScene from './NewScene.js'
+
+export default class GameScene extends Scene {
+  constructor() {
+    super('GameScene')
+  }
+
+  preload() {
+    this._makiPlayers = []
+    super.preload()
+
+    this.lia = this.maki.player('lia')
+    manager.map(this, 'default_map')
+    manager.preload(this)
+  }
+
+  create() {
+    super.create()
+    manager.create(this)
+
+    // Place Lia in the center of the map.
+    // 50 tiles x 16px = 800px, so the center is 400, 400.
+    this.lia.sprite.setPosition(400, 400)
+
+    this.physics.add.collider(
+      this.lia.sprite,
+      manager.getWallGroup(this, 'default_map')
+    )
+
+    if (!this.scene.get('NewScene')) {
+      this.scene.add('NewScene', NewScene, false)
+    }
+
+    this.input.keyboard.on('keydown-T', () => {
+      this.scene.stop('GameScene')
+      this.scene.start('NewScene')
+    })
+  }
+
+  update() {
+    this.maki.move(this.lia)
+  }
+}</code></pre>
+
+  <h3>What this scene does</h3>
+  <ul>
+    <li><code>Scene</code> gives you the Maki scene base class.</li>
+    <li><code>manager.map(this, 'default_map')</code> loads the default map.</li>
+    <li><code>manager.preload(this)</code> preloads map img.</li>
+    <li><code>manager.create(this)</code> creates the map in the scene.</li>
+    <li><code>this.maki.player('lia')</code> creates a player called <code>lia</code>.</li>
+    <li><code>this.lia.sprite.setPosition(400, 400)</code> places Lia in the center of the map.</li>
+    <li><code>manager.getWallGroup(this, 'default_map')</code> gets the collision objects from the map.</li>
+    <li><code>this.maki.move(this.lia)</code> allows Lia to move during the <code>update()</code> loop.</li>
+    <li>Pressing <code>T</code> stops <code>GameScene</code> and starts <code>NewScene</code>.</li>
+  </ul>
+
+  <hr />
+
+  <h2>4. Review the main game files</h2>
+
+  <h3>game/game.js</h3>
+  <p>This file sets up the game and connects Maki with Phaser.</p>
+
+  <h3>game/maki.config.js</h3>
+  <p>This file contains your Maki configuration.</p>
+  <p>For development, you can enable debug mode in your configuration. For example:</p>
+  <pre><code>export default {
+  dev: true,
+  debug: true
+}</code></pre>
+  <p>Debug mode helps you see collision areas while testing.</p>
+
+  <hr />
+
+  <h2>5. Run the game</h2>
+  <p>Start the development server:</p>
+  <pre><code>maki dev</code></pre>
+  <p>You should see the default map and be able to walk around with Lia.</p>
+  <img src="img/page3_img1.png" alt="Default game map" />
+  <p>When debug mode is enabled, you can see collision outlines around walls and objects:</p>
+  <img src="img/page4_img1.png" alt="Collision debug view" />
+
+  <hr />
+
+  <h2>6. Create your own tilemap</h2>
+  <p>Maki includes a tilemap editor that helps you build your own map.</p>
+  <p>Run:</p>
+  <pre><code>maki tilemap</code></pre>
+  <p>The CLI will ask you a few questions, such as:</p>
+  <ul>
+    <li>Tile size in pixels.</li>
+    <li>Map name.</li>
+    <li>Whether you want to load an existing map.</li>
+    <li>Map width in tiles.</li>
+    <li>Map height in tiles.</li>
+  </ul>
+  <p>Example:</p>
+  <img src="img/page5_img1.png" alt="Maki tilemap CLI" />
+  <p>After the dev server starts, the tilemap editor opens:</p>
+  <img src="img/page5_img2.png" alt="Maki tilemap editor" />
+  <p>The editor includes built-in layers, such as:</p>
+  <ul>
+    <li><code>Furniture</code> - place objects like beds, chairs, tables, and decorations.</li>
+    <li><code>Wall</code> - define room boundaries and walls.</li>
+    <li><code>Collision</code> - mark areas the player should not walk through.</li>
+  </ul>
+  <p>Create your room, place furniture, and experiment with the editor.</p>
+  <p>Example custom room:</p>
+  <img src="img/page6_img1.png" alt="Custom room tilemap" />
+  <p>When you are finished, click <strong>Export</strong>. Your new tilemap will be saved inside the game project.</p>
+
+  <hr />
+
+  <h2>7. Add a new scene for your custom map</h2>
+  <p>Create a new scene file, for example:</p>
+  <pre><code>game/scenes/NewScene.js</code></pre>
+  <p>Add this code:</p>
+  <pre><code>import { Scene, manager } from '@tialops/maki'
+
+export default class NewScene extends Scene {
+  constructor() {
+    super('NewScene')
+    manager.map(this, 'new-tile')
+  }
+
+  preload() {
+    super.preload()
+
+    this.lia = this.maki.player('lia')
+    manager.preload(this)
+
+    console.log('NewScene constructor')
+  }
+
+  create() {
+    super.create()
+    manager.create(this)
+
+    this.lia.sprite.setPosition(400, 400)
+
+    this.input.keyboard.on('keydown-Y', () => {
+      this.scene.stop('NewScene')
+      this.scene.start('GameScene')
+    })
+  }
+
+  update() {
+    this.maki.move(this.lia)
+  }
+}</code></pre>
+  <blockquote>Replace <code>'new-tile'</code> with the name of the map you exported if you used a different name.</blockquote>
+
+  <hr />
+
+  <h2>8. Switch between scenes</h2>
+  <p>The tutorial uses two keyboard shortcuts:</p>
+  <ul>
+    <li>Press <code>T</code> in <code>GameScene</code> to switch to <code>NewScene</code>.</li>
+    <li>Press <code>Y</code> in <code>NewScene</code> to switch back to <code>GameScene</code>.</li>
+  </ul>
+  <p>That is it - you now have a basic Maki game with a custom tilemap and scene switching.</p>
+
+  <hr />
+
+  <h2>Quick command reference</h2>
+  <pre><code>npm install @tialops/maki
+maki new game
+cd game
+maki dev
+maki tilemap</code></pre>
+
+  <h2>Troubleshooting</h2>
+
+  <h3>The map does not load</h3>
+  <p>Check that the map name in your scene matches the exported tilemap name:</p>
+  <pre><code>manager.map(this, 'new-tile')</code></pre>
+
+  <h3>I cannot see collisions</h3>
+  <p>Enable debug mode in <code>maki.config.js</code>:</p>
+  <pre><code>export default {
+  debug: true
+}</code></pre>
+
+  <h3>Scene switching does not work</h3>
+  <p>Make sure <code>NewScene</code> is imported and added inside <code>GameScene</code>:</p>
+  <pre><code>import NewScene from './NewScene.js'
+
+if (!this.scene.get('NewScene')) {
+  this.scene.add('NewScene', NewScene, false)
+}</code></pre>
+  <p>Then use the keyboard shortcuts:</p>
+  <ul>
+    <li><code>T</code> to go to <code>NewScene</code>.</li>
+    <li><code>Y</code> to return to <code>GameScene</code>.</li>
+  </ul>
+
+</body>
+</html>
